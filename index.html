@@ -198,58 +198,45 @@
         }
 
         #celebrateModal {
-            background: #1a1a2e;
-            border-radius: 24px;
-            padding: 40px 30px;
-            max-width: 420px;
-            width: 90%;
-            text-align: center;
-            border: 2px solid #ffd700;
-            box-shadow: 0 0 60px rgba(255, 215, 0, 0.3);
+            position: relative;
+            background: transparent;
+            max-width: 90%;
+            max-height: 90%;
             animation: bounceIn 0.6s ease;
-        }
-
-        .celebrate-icon {
-            font-size: 4rem;
-            margin-bottom: 10px;
-            animation: pulse 1s infinite;
-        }
-
-        #celebrateTitle {
-            color: #ffd700;
-            font-size: 1.6rem;
-            margin-bottom: 15px;
         }
 
         #celebrateImage {
             max-width: 100%;
-            max-height: 300px;
+            max-height: 80vh;
             border-radius: 16px;
-            margin: 15px 0;
-            border: 2px solid #ffd700;
-            object-fit: cover;
-        }
-
-        #celebrateText {
-            color: #aaaacc;
-            font-size: 1.1rem;
-            margin: 15px 0 20px;
+            border: 3px solid #ffd700;
+            box-shadow: 0 0 60px rgba(255, 215, 0, 0.3);
+            display: block;
         }
 
         #celebrateCloseBtn {
-            background: linear-gradient(145deg, #ffd700, #f59e0b);
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            background: #ffd700;
             color: #1a1a2e;
             border: none;
-            border-radius: 14px;
-            padding: 14px 30px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
             font-size: 1.2rem;
-            font-weight: 600;
+            font-weight: bold;
             cursor: pointer;
             transition: transform 0.2s;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+        }
+
+        #celebrateCloseBtn:hover {
+            transform: scale(1.1);
         }
 
         #celebrateCloseBtn:active {
-            transform: scale(0.95);
+            transform: scale(0.9);
         }
 
         /* ===== КОНЕЦ ИГРЫ (10 000) ===== */
@@ -368,7 +355,14 @@
                 font-size: 1.1rem;
             }
             #celebrateImage {
-                max-height: 200px;
+                max-height: 60vh;
+            }
+            #celebrateCloseBtn {
+                top: -10px;
+                right: -10px;
+                width: 34px;
+                height: 34px;
+                font-size: 1rem;
             }
             #gameOverModal h2 {
                 font-size: 1.6rem;
@@ -413,11 +407,8 @@
     <!-- ===== ПОЗДРАВЛЕНИЕ (5 000) ===== -->
     <div id="celebrateOverlay">
         <div id="celebrateModal">
-            <div class="celebrate-icon">🎉</div>
-            <h2 id="celebrateTitle">5 000 МОНЕТ!</h2>
             <img id="celebrateImage" src="monkey.jpg" alt="Поздравление" />
-            <p id="celebrateText">Ты уже на полпути к победе! 🔥</p>
-            <button id="celebrateCloseBtn">🚀 Продолжить</button>
+            <button id="celebrateCloseBtn">✕</button>
         </div>
     </div>
 
@@ -455,9 +446,7 @@
 
         // Элементы поздравления (5 000)
         const celebrateOverlay = document.getElementById('celebrateOverlay');
-        const celebrateTitle = document.getElementById('celebrateTitle');
         const celebrateImage = document.getElementById('celebrateImage');
-        const celebrateText = document.getElementById('celebrateText');
         const celebrateCloseBtn = document.getElementById('celebrateCloseBtn');
 
         // Элементы конца игры (10 000)
@@ -546,15 +535,12 @@
         }
 
         // ============================================================
-        //  ПОЗДРАВЛЕНИЕ (5 000)
+        //  ПОЗДРАВЛЕНИЕ (5 000) - ТОЛЬКО КАРТИНКА
         // ============================================================
         function showCelebration5000() {
             if (hasCelebrated5000 || isGameOver) return;
 
             celebrateImage.src = 'monkey.jpg';
-            celebrateTitle.textContent = '🎉 5 000 МОНЕТ!';
-            celebrateText.textContent = 'Ты уже на полпути к победе! Продолжай в том же духе! 🔥';
-
             celebrateOverlay.classList.add('show');
 
             hasCelebrated5000 = true;
@@ -577,27 +563,21 @@
         function showGameOver() {
             if (isGameOver) return;
 
-            // Сохраняем флаг
             isGameOver = true;
             localStorage.setItem('game_over', 'true');
 
-            // Показываем финальную статистику
             finalCoins.textContent = count;
             finalPower.textContent = '+' + clickpower;
             finalLevel.textContent = upgradelevel;
 
-            // Блокируем игру
             appEl.classList.add('game-over');
             clickBtn.disabled = true;
             upgradeBtn.disabled = true;
 
-            // Показываем экран победы
             gameOverOverlay.classList.add('show');
         }
 
-        // Перезапуск игры
         gameOverRestartBtn.addEventListener('click', function() {
-            // Сбрасываем всё
             count = 0;
             clickpower = 1;
             upgradeprice = 10;
@@ -605,7 +585,6 @@
             hasCelebrated5000 = false;
             isGameOver = false;
 
-            // Очищаем localStorage
             localStorage.removeItem('clicker_count');
             localStorage.removeItem('clicker_power');
             localStorage.removeItem('clicker_price');
@@ -613,15 +592,12 @@
             localStorage.removeItem('celebrated_5000');
             localStorage.removeItem('game_over');
 
-            // Разблокируем игру
             appEl.classList.remove('game-over');
             clickBtn.disabled = false;
             upgradeBtn.disabled = false;
 
-            // Скрываем экран победы
             gameOverOverlay.classList.remove('show');
 
-            // Обновляем экран
             updateDisplay();
             showMessage('🔄 Новая игра!', false);
         });
@@ -680,7 +656,6 @@
         // ============================================================
         updateDisplay();
 
-        // Если игра уже была завершена — показываем экран победы
         if (isGameOver) {
             appEl.classList.add('game-over');
             clickBtn.disabled = true;
