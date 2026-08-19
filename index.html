@@ -178,65 +178,33 @@
             opacity: 1;
         }
 
-        /* ===== ПОЗДРАВЛЕНИЕ (5 000) ===== */
+        /* ===== ПОЗДРАВЛЕНИЕ (5 000) - ПОЛНЫЙ ЭКРАН ===== */
         #celebrateOverlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.85);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 1000;
             animation: fadeIn 0.5s ease;
+            background: transparent;
         }
 
         #celebrateOverlay.show {
             display: flex;
         }
 
-        #celebrateModal {
-            position: relative;
-            background: transparent;
-            max-width: 90%;
-            max-height: 90%;
-            animation: bounceIn 0.6s ease;
-        }
-
         #celebrateImage {
-            max-width: 100%;
-            max-height: 80vh;
-            border-radius: 16px;
-            border: 3px solid #ffd700;
-            box-shadow: 0 0 60px rgba(255, 215, 0, 0.3);
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
             display: block;
-        }
-
-        #celebrateCloseBtn {
-            position: absolute;
-            top: -15px;
-            right: -15px;
-            background: #ffd700;
-            color: #1a1a2e;
             border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s;
-            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
-        }
-
-        #celebrateCloseBtn:hover {
-            transform: scale(1.1);
-        }
-
-        #celebrateCloseBtn:active {
-            transform: scale(0.9);
+            border-radius: 0;
+            box-shadow: none;
         }
 
         /* ===== КОНЕЦ ИГРЫ (10 000) ===== */
@@ -354,16 +322,6 @@
             .stat-value {
                 font-size: 1.1rem;
             }
-            #celebrateImage {
-                max-height: 60vh;
-            }
-            #celebrateCloseBtn {
-                top: -10px;
-                right: -10px;
-                width: 34px;
-                height: 34px;
-                font-size: 1rem;
-            }
             #gameOverModal h2 {
                 font-size: 1.6rem;
             }
@@ -404,12 +362,9 @@
         <div id="message"></div>
     </div>
 
-    <!-- ===== ПОЗДРАВЛЕНИЕ (5 000) ===== -->
+    <!-- ===== ПОЗДРАВЛЕНИЕ (5 000) - ПОЛНЫЙ ЭКРАН ===== -->
     <div id="celebrateOverlay">
-        <div id="celebrateModal">
-            <img id="celebrateImage" src="monkey.jpg" alt="Поздравление" />
-            <button id="celebrateCloseBtn">✕</button>
-        </div>
+        <img id="celebrateImage" src="monkey.jpg" alt="Поздравление" />
     </div>
 
     <!-- ===== КОНЕЦ ИГРЫ (10 000) ===== -->
@@ -447,7 +402,6 @@
         // Элементы поздравления (5 000)
         const celebrateOverlay = document.getElementById('celebrateOverlay');
         const celebrateImage = document.getElementById('celebrateImage');
-        const celebrateCloseBtn = document.getElementById('celebrateCloseBtn');
 
         // Элементы конца игры (10 000)
         const gameOverOverlay = document.getElementById('gameOverOverlay');
@@ -535,7 +489,7 @@
         }
 
         // ============================================================
-        //  ПОЗДРАВЛЕНИЕ (5 000) - ТОЛЬКО КАРТИНКА
+        //  ПОЗДРАВЛЕНИЕ (5 000) - ПОЛНЫЙ ЭКРАН
         // ============================================================
         function showCelebration5000() {
             if (hasCelebrated5000 || isGameOver) return;
@@ -545,16 +499,16 @@
 
             hasCelebrated5000 = true;
             localStorage.setItem('celebrated_5000', 'true');
+
+            // Автоматически закрыть через 3 секунды
+            setTimeout(function() {
+                celebrateOverlay.classList.remove('show');
+            }, 3000);
         }
 
-        celebrateCloseBtn.addEventListener('click', function() {
+        // Закрытие по клику на картинку
+        celebrateOverlay.addEventListener('click', function() {
             celebrateOverlay.classList.remove('show');
-        });
-
-        celebrateOverlay.addEventListener('click', function(e) {
-            if (e.target === celebrateOverlay) {
-                celebrateOverlay.classList.remove('show');
-            }
         });
 
         // ============================================================
