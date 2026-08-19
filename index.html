@@ -32,6 +32,13 @@
             text-align: center;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
             border: 1px solid #2a2a4a;
+            transition: opacity 0.5s, filter 0.5s;
+        }
+
+        #app.game-over {
+            opacity: 0.4;
+            filter: blur(2px);
+            pointer-events: none;
         }
 
         /* ===== ЗАГОЛОВОК ===== */
@@ -123,6 +130,12 @@
             transform: scale(0.94);
         }
 
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
         #clickBtn {
             background: linear-gradient(145deg, #ffd700, #f59e0b);
             color: #1a1a2e;
@@ -165,7 +178,7 @@
             opacity: 1;
         }
 
-        /* ===== ПОЗДРАВЛЕНИЕ ===== */
+        /* ===== ПОЗДРАВЛЕНИЕ (5 000) ===== */
         #celebrateOverlay {
             position: fixed;
             top: 0;
@@ -239,6 +252,78 @@
             transform: scale(0.95);
         }
 
+        /* ===== КОНЕЦ ИГРЫ (10 000) ===== */
+        #gameOverOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.92);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            animation: fadeIn 0.7s ease;
+        }
+
+        #gameOverOverlay.show {
+            display: flex;
+        }
+
+        #gameOverModal {
+            background: linear-gradient(145deg, #1a1a2e, #2a1a3e);
+            border-radius: 24px;
+            padding: 50px 30px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            border: 3px solid #ffd700;
+            box-shadow: 0 0 80px rgba(255, 215, 0, 0.4);
+            animation: bounceIn 0.8s ease;
+        }
+
+        #gameOverModal .win-icon {
+            font-size: 5rem;
+            margin-bottom: 15px;
+            animation: pulse 1.2s infinite;
+        }
+
+        #gameOverModal h2 {
+            color: #ffd700;
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+
+        #gameOverModal .final-stats {
+            color: #aaaacc;
+            font-size: 1.1rem;
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+
+        #gameOverModal .final-stats span {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        #gameOverRestartBtn {
+            background: linear-gradient(145deg, #ffd700, #f59e0b);
+            color: #1a1a2e;
+            border: none;
+            border-radius: 14px;
+            padding: 16px 30px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 10px;
+        }
+
+        #gameOverRestartBtn:active {
+            transform: scale(0.95);
+        }
+
         /* ===== АНИМАЦИИ ===== */
         @keyframes fadeIn {
             from { opacity: 0; }
@@ -285,6 +370,9 @@
             #celebrateImage {
                 max-height: 200px;
             }
+            #gameOverModal h2 {
+                font-size: 1.6rem;
+            }
         }
     </style>
 </head>
@@ -322,14 +410,31 @@
         <div id="message"></div>
     </div>
 
-    <!-- ===== ПОЗДРАВЛЕНИЕ ===== -->
+    <!-- ===== ПОЗДРАВЛЕНИЕ (5 000) ===== -->
     <div id="celebrateOverlay">
         <div id="celebrateModal">
-            <div class="celebrate-icon">🏆</div>
-            <h2 id="celebrateTitle">ТЫ ДОСТИГ 10 000 МОНЕТ!</h2>
+            <div class="celebrate-icon">🎉</div>
+            <h2 id="celebrateTitle">5 000 МОНЕТ!</h2>
             <img id="celebrateImage" src="monkey.jpg" alt="Поздравление" />
-            <p id="celebrateText">Ты настоящий кликер-мастер! 🎉</p>
-            <button id="celebrateCloseBtn">🔥 Продолжить</button>
+            <p id="celebrateText">Ты уже на полпути к победе! 🔥</p>
+            <button id="celebrateCloseBtn">🚀 Продолжить</button>
+        </div>
+    </div>
+
+    <!-- ===== КОНЕЦ ИГРЫ (10 000) ===== -->
+    <div id="gameOverOverlay">
+        <div id="gameOverModal">
+            <div class="win-icon">🏆</div>
+            <h2>ТЫ ПОБЕДИЛ!</h2>
+            <div class="final-stats">
+                Монет: <span id="finalCoins">0</span><br />
+                Сила клика: <span id="finalPower">+1</span><br />
+                Улучшений куплено: <span id="finalLevel">0</span>
+            </div>
+            <p style="color: #8888aa; font-size: 0.9rem; margin-bottom: 15px;">
+                Ты достиг 10 000 монет и завершил игру!
+            </p>
+            <button id="gameOverRestartBtn">🔄 Играть заново</button>
         </div>
     </div>
 
@@ -337,6 +442,7 @@
         // ============================================================
         //  НАХОДИМ ЭЛЕМЕНТЫ
         // ============================================================
+        const appEl = document.getElementById('app');
         const counterEl = document.getElementById('counter');
         const coinsDisplay = document.getElementById('coinsDisplay');
         const clickPowerDisplay = document.getElementById('clickPowerDisplay');
@@ -347,12 +453,19 @@
         const resetBtn = document.getElementById('resetBtn');
         const messageEl = document.getElementById('message');
 
-        // Элементы поздравления
+        // Элементы поздравления (5 000)
         const celebrateOverlay = document.getElementById('celebrateOverlay');
         const celebrateTitle = document.getElementById('celebrateTitle');
         const celebrateImage = document.getElementById('celebrateImage');
         const celebrateText = document.getElementById('celebrateText');
         const celebrateCloseBtn = document.getElementById('celebrateCloseBtn');
+
+        // Элементы конца игры (10 000)
+        const gameOverOverlay = document.getElementById('gameOverOverlay');
+        const finalCoins = document.getElementById('finalCoins');
+        const finalPower = document.getElementById('finalPower');
+        const finalLevel = document.getElementById('finalLevel');
+        const gameOverRestartBtn = document.getElementById('gameOverRestartBtn');
 
         // ============================================================
         //  ПЕРЕМЕННЫЕ ИГРЫ
@@ -362,8 +475,9 @@
         let upgradeprice = 10;
         let upgradelevel = 0;
 
-        // Проверяем, получал ли игрок уже награду
-        let hasCelebrated = localStorage.getItem('celebrated_10000') === 'true';
+        // Флаги
+        let hasCelebrated5000 = localStorage.getItem('celebrated_5000') === 'true';
+        let isGameOver = localStorage.getItem('game_over') === 'true';
 
         // ============================================================
         //  ЗАГРУЗКА ИЗ localStorage
@@ -403,9 +517,15 @@
             localStorage.setItem('clicker_price', upgradeprice);
             localStorage.setItem('clicker_level', upgradelevel);
 
-            // ===== ПРОВЕРКА НА 10 000 МОНЕТ =====
-            if (count >= 10000 && !hasCelebrated) {
-                showCelebration();
+            // ===== ПРОВЕРКА: КОНЕЦ ИГРЫ (10 000) =====
+            if (count >= 10000 && !isGameOver) {
+                showGameOver();
+                return;
+            }
+
+            // ===== ПРОВЕРКА: ПОЗДРАВЛЕНИЕ (5 000) =====
+            if (count >= 5000 && !hasCelebrated5000 && !isGameOver) {
+                showCelebration5000();
             }
         }
 
@@ -426,20 +546,19 @@
         }
 
         // ============================================================
-        //  ПОЗДРАВЛЕНИЕ
+        //  ПОЗДРАВЛЕНИЕ (5 000)
         // ============================================================
-        function showCelebration() {
-            if (hasCelebrated) return;
+        function showCelebration5000() {
+            if (hasCelebrated5000 || isGameOver) return;
 
-            // ТВОЯ КАРТИНКА (лежит в той же папке)
             celebrateImage.src = 'monkey.jpg';
-            celebrateTitle.textContent = '🏆 10 000 МОНЕТ!';
-            celebrateText.textContent = 'Ты настоящий кликер-мастер! 🎉 Продолжай в том же духе!';
+            celebrateTitle.textContent = '🎉 5 000 МОНЕТ!';
+            celebrateText.textContent = 'Ты уже на полпути к победе! Продолжай в том же духе! 🔥';
 
             celebrateOverlay.classList.add('show');
 
-            hasCelebrated = true;
-            localStorage.setItem('celebrated_10000', 'true');
+            hasCelebrated5000 = true;
+            localStorage.setItem('celebrated_5000', 'true');
         }
 
         celebrateCloseBtn.addEventListener('click', function() {
@@ -453,14 +572,71 @@
         });
 
         // ============================================================
+        //  КОНЕЦ ИГРЫ (10 000)
+        // ============================================================
+        function showGameOver() {
+            if (isGameOver) return;
+
+            // Сохраняем флаг
+            isGameOver = true;
+            localStorage.setItem('game_over', 'true');
+
+            // Показываем финальную статистику
+            finalCoins.textContent = count;
+            finalPower.textContent = '+' + clickpower;
+            finalLevel.textContent = upgradelevel;
+
+            // Блокируем игру
+            appEl.classList.add('game-over');
+            clickBtn.disabled = true;
+            upgradeBtn.disabled = true;
+
+            // Показываем экран победы
+            gameOverOverlay.classList.add('show');
+        }
+
+        // Перезапуск игры
+        gameOverRestartBtn.addEventListener('click', function() {
+            // Сбрасываем всё
+            count = 0;
+            clickpower = 1;
+            upgradeprice = 10;
+            upgradelevel = 0;
+            hasCelebrated5000 = false;
+            isGameOver = false;
+
+            // Очищаем localStorage
+            localStorage.removeItem('clicker_count');
+            localStorage.removeItem('clicker_power');
+            localStorage.removeItem('clicker_price');
+            localStorage.removeItem('clicker_level');
+            localStorage.removeItem('celebrated_5000');
+            localStorage.removeItem('game_over');
+
+            // Разблокируем игру
+            appEl.classList.remove('game-over');
+            clickBtn.disabled = false;
+            upgradeBtn.disabled = false;
+
+            // Скрываем экран победы
+            gameOverOverlay.classList.remove('show');
+
+            // Обновляем экран
+            updateDisplay();
+            showMessage('🔄 Новая игра!', false);
+        });
+
+        // ============================================================
         //  ОБРАБОТЧИКИ СОБЫТИЙ
         // ============================================================
         clickBtn.addEventListener('click', function() {
+            if (isGameOver) return;
             count = count + clickpower;
             updateDisplay();
         });
 
         upgradeBtn.addEventListener('click', function() {
+            if (isGameOver) return;
             if (count >= upgradeprice) {
                 count = count - upgradeprice;
                 clickpower = clickpower + 1;
@@ -479,8 +655,21 @@
                 clickpower = 1;
                 upgradeprice = 10;
                 upgradelevel = 0;
-                hasCelebrated = false;
-                localStorage.removeItem('celebrated_10000');
+                hasCelebrated5000 = false;
+                isGameOver = false;
+
+                localStorage.removeItem('clicker_count');
+                localStorage.removeItem('clicker_power');
+                localStorage.removeItem('clicker_price');
+                localStorage.removeItem('clicker_level');
+                localStorage.removeItem('celebrated_5000');
+                localStorage.removeItem('game_over');
+
+                appEl.classList.remove('game-over');
+                clickBtn.disabled = false;
+                upgradeBtn.disabled = false;
+                gameOverOverlay.classList.remove('show');
+
                 updateDisplay();
                 showMessage('🔄 Прогресс сброшен', false);
             }
@@ -490,6 +679,17 @@
         //  СТАРТ
         // ============================================================
         updateDisplay();
+
+        // Если игра уже была завершена — показываем экран победы
+        if (isGameOver) {
+            appEl.classList.add('game-over');
+            clickBtn.disabled = true;
+            upgradeBtn.disabled = true;
+            finalCoins.textContent = count;
+            finalPower.textContent = '+' + clickpower;
+            finalLevel.textContent = upgradelevel;
+            gameOverOverlay.classList.add('show');
+        }
     </script>
 
 </body>
