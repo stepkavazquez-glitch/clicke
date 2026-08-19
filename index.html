@@ -41,7 +41,6 @@
             pointer-events: none;
         }
 
-        /* ===== ЗАГОЛОВОК ===== */
         h1 {
             font-size: 2rem;
             color: #fff;
@@ -56,7 +55,6 @@
             margin-bottom: 20px;
         }
 
-        /* ===== СЧЁТЧИК МОНЕТ ===== */
         .counter {
             font-size: 4.5rem;
             font-weight: bold;
@@ -69,7 +67,6 @@
             font-variant-numeric: tabular-nums;
         }
 
-        /* ===== СТАТИСТИКА ===== */
         .stats {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -98,20 +95,11 @@
             margin-top: 2px;
         }
 
-        .stat-value.gold {
-            color: #ffd700;
-        }
-        .stat-value.green {
-            color: #4ade80;
-        }
-        .stat-value.blue {
-            color: #60a5fa;
-        }
-        .stat-value.pink {
-            color: #f472b6;
-        }
+        .stat-value.gold { color: #ffd700; }
+        .stat-value.green { color: #4ade80; }
+        .stat-value.blue { color: #60a5fa; }
+        .stat-value.pink { color: #f472b6; }
 
-        /* ===== КНОПКИ ===== */
         button {
             border: none;
             border-radius: 14px;
@@ -160,11 +148,6 @@
             border: 1px solid #3a3a5a;
         }
 
-        #resetBtn:active {
-            background: #3a3a5a;
-        }
-
-        /* ===== СООБЩЕНИЕ ===== */
         #message {
             color: #f87171;
             font-size: 0.9rem;
@@ -178,19 +161,19 @@
             opacity: 1;
         }
 
-        /* ===== ПОЗДРАВЛЕНИЕ (5 000) - ПОЛНЫЙ ЭКРАН ===== */
+        /* ===== ПОЗДРАВЛЕНИЕ - ПОЛНЫЙ ЭКРАН ===== */
         #celebrateOverlay {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
-            animation: fadeIn 0.5s ease;
-            background: transparent;
+            z-index: 9999;
+            background: rgba(0, 0, 0, 0.9);
+            cursor: pointer;
         }
 
         #celebrateOverlay.show {
@@ -198,16 +181,15 @@
         }
 
         #celebrateImage {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-            border: none;
-            border-radius: 0;
-            box-shadow: none;
+            max-width: 95vw;
+            max-height: 95vh;
+            object-fit: contain;
+            border-radius: 12px;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+            border: 3px solid #ffd700;
         }
 
-        /* ===== КОНЕЦ ИГРЫ (10 000) ===== */
+        /* ===== КОНЕЦ ИГРЫ ===== */
         #gameOverOverlay {
             position: fixed;
             top: 0;
@@ -218,7 +200,7 @@
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 2000;
+            z-index: 10000;
             animation: fadeIn 0.7s ease;
         }
 
@@ -279,7 +261,6 @@
             transform: scale(0.95);
         }
 
-        /* ===== АНИМАЦИИ ===== */
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -325,6 +306,10 @@
             #gameOverModal h2 {
                 font-size: 1.6rem;
             }
+            #celebrateImage {
+                max-width: 98vw;
+                max-height: 80vh;
+            }
         }
     </style>
 </head>
@@ -362,12 +347,12 @@
         <div id="message"></div>
     </div>
 
-    <!-- ===== ПОЗДРАВЛЕНИЕ (5 000) - ПОЛНЫЙ ЭКРАН ===== -->
+    <!-- ===== ПОЗДРАВЛЕНИЕ ===== -->
     <div id="celebrateOverlay">
         <img id="celebrateImage" src="monkey.jpg" alt="Поздравление" />
     </div>
 
-    <!-- ===== КОНЕЦ ИГРЫ (10 000) ===== -->
+    <!-- ===== КОНЕЦ ИГРЫ ===== -->
     <div id="gameOverOverlay">
         <div id="gameOverModal">
             <div class="win-icon">🏆</div>
@@ -399,11 +384,9 @@
         const resetBtn = document.getElementById('resetBtn');
         const messageEl = document.getElementById('message');
 
-        // Элементы поздравления (5 000)
         const celebrateOverlay = document.getElementById('celebrateOverlay');
         const celebrateImage = document.getElementById('celebrateImage');
 
-        // Элементы конца игры (10 000)
         const gameOverOverlay = document.getElementById('gameOverOverlay');
         const finalCoins = document.getElementById('finalCoins');
         const finalPower = document.getElementById('finalPower');
@@ -419,31 +402,23 @@
         let upgradelevel = 0;
 
         // Флаги
-        let hasCelebrated5000 = localStorage.getItem('celebrated_5000') === 'true';
+        let hasCelebrated5000 = false; // ВСЕГДА false, чтобы картинка показывалась
         let isGameOver = localStorage.getItem('game_over') === 'true';
 
         // ============================================================
         //  ЗАГРУЗКА ИЗ localStorage
         // ============================================================
         const savedCount = localStorage.getItem('clicker_count');
-        if (savedCount !== null) {
-            count = parseInt(savedCount);
-        }
+        if (savedCount !== null) count = parseInt(savedCount);
 
         const savedClickpower = localStorage.getItem('clicker_power');
-        if (savedClickpower !== null) {
-            clickpower = parseInt(savedClickpower);
-        }
+        if (savedClickpower !== null) clickpower = parseInt(savedClickpower);
 
         const savedUpgradePrice = localStorage.getItem('clicker_price');
-        if (savedUpgradePrice !== null) {
-            upgradeprice = parseInt(savedUpgradePrice);
-        }
+        if (savedUpgradePrice !== null) upgradeprice = parseInt(savedUpgradePrice);
 
         const savedUpgradeLevel = localStorage.getItem('clicker_level');
-        if (savedUpgradeLevel !== null) {
-            upgradelevel = parseInt(savedUpgradeLevel);
-        }
+        if (savedUpgradeLevel !== null) upgradelevel = parseInt(savedUpgradeLevel);
 
         // ============================================================
         //  ФУНКЦИЯ ОБНОВЛЕНИЯ ЭКРАНА
@@ -467,13 +442,13 @@
             }
 
             // ===== ПРОВЕРКА: ПОЗДРАВЛЕНИЕ (5 000) =====
-            if (count >= 5000 && !hasCelebrated5000 && !isGameOver) {
+            if (count >= 5000 && !isGameOver) {
                 showCelebration5000();
             }
         }
 
         // ============================================================
-        //  ФУНКЦИЯ ПОКАЗА СООБЩЕНИЯ
+        //  ПОКАЗ СООБЩЕНИЯ
         // ============================================================
         let messageTimeout = null;
 
@@ -492,21 +467,23 @@
         //  ПОЗДРАВЛЕНИЕ (5 000) - ПОЛНЫЙ ЭКРАН
         // ============================================================
         function showCelebration5000() {
-            if (hasCelebrated5000 || isGameOver) return;
+            // Проверяем, не показывали ли уже в этой сессии
+            if (celebrateOverlay.classList.contains('show')) return;
+            if (isGameOver) return;
 
+            // Картинка
             celebrateImage.src = 'monkey.jpg';
+            
+            // Показываем
             celebrateOverlay.classList.add('show');
 
-            hasCelebrated5000 = true;
-            localStorage.setItem('celebrated_5000', 'true');
-
-            // Автоматически закрыть через 3 секунды
+            // Автоматически скрыть через 3 секунды
             setTimeout(function() {
                 celebrateOverlay.classList.remove('show');
             }, 3000);
         }
 
-        // Закрытие по клику на картинку
+        // Закрытие по клику
         celebrateOverlay.addEventListener('click', function() {
             celebrateOverlay.classList.remove('show');
         });
@@ -536,14 +513,12 @@
             clickpower = 1;
             upgradeprice = 10;
             upgradelevel = 0;
-            hasCelebrated5000 = false;
             isGameOver = false;
 
             localStorage.removeItem('clicker_count');
             localStorage.removeItem('clicker_power');
             localStorage.removeItem('clicker_price');
             localStorage.removeItem('clicker_level');
-            localStorage.removeItem('celebrated_5000');
             localStorage.removeItem('game_over');
 
             appEl.classList.remove('game-over');
@@ -557,7 +532,7 @@
         });
 
         // ============================================================
-        //  ОБРАБОТЧИКИ СОБЫТИЙ
+        //  ОБРАБОТЧИКИ
         // ============================================================
         clickBtn.addEventListener('click', function() {
             if (isGameOver) return;
@@ -585,14 +560,12 @@
                 clickpower = 1;
                 upgradeprice = 10;
                 upgradelevel = 0;
-                hasCelebrated5000 = false;
                 isGameOver = false;
 
                 localStorage.removeItem('clicker_count');
                 localStorage.removeItem('clicker_power');
                 localStorage.removeItem('clicker_price');
                 localStorage.removeItem('clicker_level');
-                localStorage.removeItem('celebrated_5000');
                 localStorage.removeItem('game_over');
 
                 appEl.classList.remove('game-over');
