@@ -123,7 +123,6 @@
             transform: scale(0.94);
         }
 
-        /* Кнопка клика */
         #clickBtn {
             background: linear-gradient(145deg, #ffd700, #f59e0b);
             color: #1a1a2e;
@@ -133,22 +132,12 @@
             margin-top: 10px;
         }
 
-        #clickBtn:active {
-            box-shadow: 0 3px 15px rgba(255, 215, 0, 0.15);
-        }
-
-        /* Кнопка улучшения */
         #upgradeBtn {
             background: linear-gradient(145deg, #4ade80, #22c55e);
             color: #0f0f1a;
             box-shadow: 0 4px 20px rgba(74, 222, 128, 0.2);
         }
 
-        #upgradeBtn:active {
-            box-shadow: 0 2px 10px rgba(74, 222, 128, 0.1);
-        }
-
-        /* Кнопка сброса */
         #resetBtn {
             background: #2a2a4a;
             color: #8888aa;
@@ -162,7 +151,7 @@
             background: #3a3a5a;
         }
 
-        /* ===== УВЕДОМЛЕНИЕ (сообщение об ошибке) ===== */
+        /* ===== СООБЩЕНИЕ ===== */
         #message {
             color: #f87171;
             font-size: 0.9rem;
@@ -176,7 +165,97 @@
             opacity: 1;
         }
 
-        /* ===== АДАПТИВ ===== */
+        /* ===== ПОЗДРАВЛЕНИЕ ===== */
+        #celebrateOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.5s ease;
+        }
+
+        #celebrateOverlay.show {
+            display: flex;
+        }
+
+        #celebrateModal {
+            background: #1a1a2e;
+            border-radius: 24px;
+            padding: 40px 30px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            border: 2px solid #ffd700;
+            box-shadow: 0 0 60px rgba(255, 215, 0, 0.3);
+            animation: bounceIn 0.6s ease;
+        }
+
+        .celebrate-icon {
+            font-size: 4rem;
+            margin-bottom: 10px;
+            animation: pulse 1s infinite;
+        }
+
+        #celebrateTitle {
+            color: #ffd700;
+            font-size: 1.6rem;
+            margin-bottom: 15px;
+        }
+
+        #celebrateImage {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 16px;
+            margin: 15px 0;
+            border: 2px solid #ffd700;
+            object-fit: cover;
+        }
+
+        #celebrateText {
+            color: #aaaacc;
+            font-size: 1.1rem;
+            margin: 15px 0 20px;
+        }
+
+        #celebrateCloseBtn {
+            background: linear-gradient(145deg, #ffd700, #f59e0b);
+            color: #1a1a2e;
+            border: none;
+            border-radius: 14px;
+            padding: 14px 30px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        #celebrateCloseBtn:active {
+            transform: scale(0.95);
+        }
+
+        /* ===== АНИМАЦИИ ===== */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
         @media (max-width: 480px) {
             #app {
                 padding: 28px 18px;
@@ -203,20 +282,20 @@
             .stat-value {
                 font-size: 1.1rem;
             }
+            #celebrateImage {
+                max-height: 200px;
+            }
         }
     </style>
 </head>
 <body>
 
     <div id="app">
-        <!-- ЗАГОЛОВОК -->
         <h1>⚡ КЛИКЕР</h1>
         <div class="subtitle">нажимай и качай силу</div>
 
-        <!-- СЧЁТЧИК МОНЕТ -->
         <div class="counter" id="counter">0</div>
 
-        <!-- СТАТИСТИКА -->
         <div class="stats">
             <div class="stat-box">
                 <div class="stat-label">💰 Монет</div>
@@ -236,13 +315,22 @@
             </div>
         </div>
 
-        <!-- КНОПКИ -->
         <button id="clickBtn">👆 КЛИК</button>
         <button id="upgradeBtn">🔧 Улучшить клик</button>
         <button id="resetBtn">🔄 Сброс</button>
 
-        <!-- СООБЩЕНИЕ ОБ ОШИБКЕ -->
         <div id="message"></div>
+    </div>
+
+    <!-- ===== ПОЗДРАВЛЕНИЕ ===== -->
+    <div id="celebrateOverlay">
+        <div id="celebrateModal">
+            <div class="celebrate-icon">🏆</div>
+            <h2 id="celebrateTitle">ТЫ ДОСТИГ 10 000 МОНЕТ!</h2>
+            <img id="celebrateImage" src="monkey.jpg" alt="Поздравление" />
+            <p id="celebrateText">Ты настоящий кликер-мастер! 🎉</p>
+            <button id="celebrateCloseBtn">🔥 Продолжить</button>
+        </div>
     </div>
 
     <script>
@@ -259,13 +347,23 @@
         const resetBtn = document.getElementById('resetBtn');
         const messageEl = document.getElementById('message');
 
+        // Элементы поздравления
+        const celebrateOverlay = document.getElementById('celebrateOverlay');
+        const celebrateTitle = document.getElementById('celebrateTitle');
+        const celebrateImage = document.getElementById('celebrateImage');
+        const celebrateText = document.getElementById('celebrateText');
+        const celebrateCloseBtn = document.getElementById('celebrateCloseBtn');
+
         // ============================================================
         //  ПЕРЕМЕННЫЕ ИГРЫ
         // ============================================================
-        let count = 0;              // монеты
-        let clickpower = 1;         // сила клика
-        let upgradeprice = 10;      // цена улучшения
-        let upgradelevel = 0;       // сколько куплено улучшений
+        let count = 0;
+        let clickpower = 1;
+        let upgradeprice = 10;
+        let upgradelevel = 0;
+
+        // Проверяем, получал ли игрок уже награду
+        let hasCelebrated = localStorage.getItem('celebrated_10000') === 'true';
 
         // ============================================================
         //  ЗАГРУЗКА ИЗ localStorage
@@ -300,11 +398,15 @@
             upgradeLevelDisplay.textContent = upgradelevel;
             upgradePriceDisplay.textContent = upgradeprice;
 
-            // Сохраняем всё в localStorage
             localStorage.setItem('clicker_count', count);
             localStorage.setItem('clicker_power', clickpower);
             localStorage.setItem('clicker_price', upgradeprice);
             localStorage.setItem('clicker_level', upgradelevel);
+
+            // ===== ПРОВЕРКА НА 10 000 МОНЕТ =====
+            if (count >= 10000 && !hasCelebrated) {
+                showCelebration();
+            }
         }
 
         // ============================================================
@@ -324,22 +426,46 @@
         }
 
         // ============================================================
+        //  ПОЗДРАВЛЕНИЕ
+        // ============================================================
+        function showCelebration() {
+            if (hasCelebrated) return;
+
+            // ТВОЯ КАРТИНКА (лежит в той же папке)
+            celebrateImage.src = 'monkey.jpg';
+            celebrateTitle.textContent = '🏆 10 000 МОНЕТ!';
+            celebrateText.textContent = 'Ты настоящий кликер-мастер! 🎉 Продолжай в том же духе!';
+
+            celebrateOverlay.classList.add('show');
+
+            hasCelebrated = true;
+            localStorage.setItem('celebrated_10000', 'true');
+        }
+
+        celebrateCloseBtn.addEventListener('click', function() {
+            celebrateOverlay.classList.remove('show');
+        });
+
+        celebrateOverlay.addEventListener('click', function(e) {
+            if (e.target === celebrateOverlay) {
+                celebrateOverlay.classList.remove('show');
+            }
+        });
+
+        // ============================================================
         //  ОБРАБОТЧИКИ СОБЫТИЙ
         // ============================================================
-
-        // --- КЛИК ---
         clickBtn.addEventListener('click', function() {
             count = count + clickpower;
             updateDisplay();
         });
 
-        // --- УЛУЧШЕНИЕ ---
         upgradeBtn.addEventListener('click', function() {
             if (count >= upgradeprice) {
                 count = count - upgradeprice;
                 clickpower = clickpower + 1;
                 upgradelevel = upgradelevel + 1;
-                upgradeprice = Math.floor(upgradeprice * 1.7); // цена растёт: 10 → 17 → 28 → 47...
+                upgradeprice = Math.floor(upgradeprice * 1.7);
                 updateDisplay();
                 showMessage('✅ Улучшение куплено!', false);
             } else {
@@ -347,13 +473,14 @@
             }
         });
 
-        // --- СБРОС ---
         resetBtn.addEventListener('click', function() {
             if (confirm('Точно сбросить весь прогресс?')) {
                 count = 0;
                 clickpower = 1;
                 upgradeprice = 10;
                 upgradelevel = 0;
+                hasCelebrated = false;
+                localStorage.removeItem('celebrated_10000');
                 updateDisplay();
                 showMessage('🔄 Прогресс сброшен', false);
             }
