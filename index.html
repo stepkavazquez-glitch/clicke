@@ -41,6 +41,12 @@
             pointer-events: none;
         }
 
+        #app.blocked {
+            opacity: 0.5;
+            filter: blur(1px);
+            pointer-events: none;
+        }
+
         h1 {
             font-size: 2rem;
             color: #fff;
@@ -184,19 +190,20 @@
             position: relative;
             max-width: 95vw;
             max-height: 95vh;
+            text-align: center;
         }
 
         #celebrateImage {
             max-width: 95vw;
-            max-height: 85vh;
+            max-height: 75vh;
             object-fit: contain;
             border-radius: 12px;
             border: 3px solid #ffd700;
             box-shadow: 0 0 60px rgba(255, 215, 0, 0.4);
             display: block;
+            margin: 0 auto;
         }
 
-        /* Таймер и кнопка закрытия */
         #celebrateTimer {
             color: #8888aa;
             font-size: 0.9rem;
@@ -359,7 +366,7 @@
             }
             #celebrateImage {
                 max-width: 98vw;
-                max-height: 70vh;
+                max-height: 65vh;
             }
             #celebrateCloseBtn {
                 top: -12px;
@@ -410,7 +417,7 @@
         <div class="content">
             <img id="celebrateImage" src="monkey.jpg" alt="Поздравление" />
             <button id="celebrateCloseBtn">✕</button>
-            <div id="celebrateTimer">Закроется через <span id="timerSeconds">30</span> сек</div>
+            <div id="celebrateTimer">⏳ <span id="timerSeconds">30</span> сек</div>
         </div>
     </div>
 
@@ -486,6 +493,23 @@
         if (savedUpgradeLevel !== null) upgradelevel = parseInt(savedUpgradeLevel);
 
         // ============================================================
+        //  БЛОКИРОВКА/РАЗБЛОКИРОВКА ИГРЫ
+        // ============================================================
+        function blockGame() {
+            appEl.classList.add('blocked');
+            clickBtn.disabled = true;
+            upgradeBtn.disabled = true;
+        }
+
+        function unblockGame() {
+            appEl.classList.remove('blocked');
+            if (!isGameOver) {
+                clickBtn.disabled = false;
+                upgradeBtn.disabled = false;
+            }
+        }
+
+        // ============================================================
         //  ФУНКЦИЯ ОБНОВЛЕНИЯ ЭКРАНА
         // ============================================================
         function updateDisplay() {
@@ -527,13 +551,16 @@
         }
 
         // ============================================================
-        //  ПОЗДРАВЛЕНИЕ (5 000) - 30 СЕКУНД
+        //  ПОЗДРАВЛЕНИЕ (5 000) - БЛОКИРУЕМ КЛИКИ
         // ============================================================
         function showCelebration5000() {
             if (isCelebrating) return;
             if (isGameOver) return;
 
             isCelebrating = true;
+
+            // БЛОКИРУЕМ ИГРУ
+            blockGame();
 
             // Показываем картинку
             celebrateImage.src = 'monkey.jpg';
@@ -542,11 +569,9 @@
             let seconds = 30;
             timerSeconds.textContent = seconds;
 
-            // Очищаем старые таймеры
             if (timerInterval) clearInterval(timerInterval);
             if (celebrateTimeout) clearTimeout(celebrateTimeout);
 
-            // Таймер обратного отсчёта
             timerInterval = setInterval(function() {
                 seconds--;
                 timerSeconds.textContent = seconds;
@@ -556,7 +581,6 @@
                 }
             }, 1000);
 
-            // Автоматическое закрытие через 30 секунд
             celebrateTimeout = setTimeout(function() {
                 closeCelebration();
             }, 30000);
@@ -565,6 +589,7 @@
         function closeCelebration() {
             celebrateOverlay.classList.remove('show');
             isCelebrating = false;
+
             if (timerInterval) {
                 clearInterval(timerInterval);
                 timerInterval = null;
@@ -573,9 +598,14 @@
                 clearTimeout(celebrateTimeout);
                 celebrateTimeout = null;
             }
+
+            // РАЗБЛОКИРУЕМ ИГРУ (если не конец игры)
+            if (!isGameOver) {
+                unblockGame();
+            }
         }
 
-        // Закрытие по кнопке ✕ (тоже закрывает)
+        // Закрытие по кнопке ✕
         celebrateCloseBtn.addEventListener('click', function() {
             closeCelebration();
         });
@@ -586,7 +616,7 @@
         function showGameOver() {
             if (isGameOver) return;
 
-            // Сначала закрываем поздравление, если оно открыто
+            // Закрываем поздравление, если открыто
             closeCelebration();
 
             isGameOver = true;
@@ -631,12 +661,14 @@
         // ============================================================
         clickBtn.addEventListener('click', function() {
             if (isGameOver) return;
+            if (isCelebrating) return;
             count = count + clickpower;
             updateDisplay();
         });
 
         upgradeBtn.addEventListener('click', function() {
             if (isGameOver) return;
+            if (isCelebrating) return;
             if (count >= upgradeprice) {
                 count = count - upgradeprice;
                 clickpower = clickpower + 1;
@@ -665,6 +697,7 @@
                 localStorage.removeItem('game_over');
 
                 appEl.classList.remove('game-over');
+                appEl.classList.remove('blocked');
                 clickBtn.disabled = false;
                 upgradeBtn.disabled = false;
                 gameOverOverlay.classList.remove('show');
