@@ -172,21 +172,72 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            background: rgba(0, 0, 0, 0.9);
-            cursor: pointer;
+            background: rgba(0, 0, 0, 0.92);
+            cursor: default;
         }
 
         #celebrateOverlay.show {
             display: flex;
         }
 
-        #celebrateImage {
+        #celebrateOverlay .content {
+            position: relative;
             max-width: 95vw;
             max-height: 95vh;
+        }
+
+        #celebrateImage {
+            max-width: 95vw;
+            max-height: 85vh;
             object-fit: contain;
             border-radius: 12px;
-            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
             border: 3px solid #ffd700;
+            box-shadow: 0 0 60px rgba(255, 215, 0, 0.4);
+            display: block;
+        }
+
+        /* Таймер и кнопка закрытия */
+        #celebrateTimer {
+            color: #8888aa;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 12px;
+            font-family: monospace;
+        }
+
+        #celebrateTimer span {
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        #celebrateCloseBtn {
+            position: absolute;
+            top: -18px;
+            right: -18px;
+            background: #ffd700;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.5);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #celebrateCloseBtn:hover {
+            transform: scale(1.1);
+        }
+
+        #celebrateCloseBtn:active {
+            transform: scale(0.9);
         }
 
         /* ===== КОНЕЦ ИГРЫ ===== */
@@ -308,7 +359,14 @@
             }
             #celebrateImage {
                 max-width: 98vw;
-                max-height: 80vh;
+                max-height: 70vh;
+            }
+            #celebrateCloseBtn {
+                top: -12px;
+                right: -12px;
+                width: 38px;
+                height: 38px;
+                font-size: 1.2rem;
             }
         }
     </style>
@@ -349,7 +407,11 @@
 
     <!-- ===== ПОЗДРАВЛЕНИЕ ===== -->
     <div id="celebrateOverlay">
-        <img id="celebrateImage" src="monkey.jpg" alt="Поздравление" />
+        <div class="content">
+            <img id="celebrateImage" src="monkey.jpg" alt="Поздравление" />
+            <button id="celebrateCloseBtn">✕</button>
+            <div id="celebrateTimer">Закроется через <span id="timerSeconds">30</span> сек</div>
+        </div>
     </div>
 
     <!-- ===== КОНЕЦ ИГРЫ ===== -->
@@ -386,6 +448,8 @@
 
         const celebrateOverlay = document.getElementById('celebrateOverlay');
         const celebrateImage = document.getElementById('celebrateImage');
+        const celebrateCloseBtn = document.getElementById('celebrateCloseBtn');
+        const timerSeconds = document.getElementById('timerSeconds');
 
         const gameOverOverlay = document.getElementById('gameOverOverlay');
         const finalCoins = document.getElementById('finalCoins');
@@ -401,9 +465,10 @@
         let upgradeprice = 10;
         let upgradelevel = 0;
 
-        // Флаги
-        let hasCelebrated5000 = false; // ВСЕГДА false, чтобы картинка показывалась
         let isGameOver = localStorage.getItem('game_over') === 'true';
+        let timerInterval = null;
+        let celebrateTimeout = null;
+        let isCelebrating = false;
 
         // ============================================================
         //  ЗАГРУЗКА ИЗ localStorage
@@ -435,14 +500,12 @@
             localStorage.setItem('clicker_price', upgradeprice);
             localStorage.setItem('clicker_level', upgradelevel);
 
-            // ===== ПРОВЕРКА: КОНЕЦ ИГРЫ (10 000) =====
             if (count >= 10000 && !isGameOver) {
                 showGameOver();
                 return;
             }
 
-            // ===== ПРОВЕРКА: ПОЗДРАВЛЕНИЕ (5 000) =====
-            if (count >= 5000 && !isGameOver) {
+            if (count >= 5000 && !isGameOver && !isCelebrating) {
                 showCelebration5000();
             }
         }
@@ -464,28 +527,57 @@
         }
 
         // ============================================================
-        //  ПОЗДРАВЛЕНИЕ (5 000) - ПОЛНЫЙ ЭКРАН
+        //  ПОЗДРАВЛЕНИЕ (5 000) - 30 СЕКУНД
         // ============================================================
         function showCelebration5000() {
-            // Проверяем, не показывали ли уже в этой сессии
-            if (celebrateOverlay.classList.contains('show')) return;
+            if (isCelebrating) return;
             if (isGameOver) return;
 
-            // Картинка
+            isCelebrating = true;
+
+            // Показываем картинку
             celebrateImage.src = 'monkey.jpg';
-            
-            // Показываем
             celebrateOverlay.classList.add('show');
 
-            // Автоматически скрыть через 3 секунды
-            setTimeout(function() {
-                celebrateOverlay.classList.remove('show');
-            }, 3000);
+            let seconds = 30;
+            timerSeconds.textContent = seconds;
+
+            // Очищаем старые таймеры
+            if (timerInterval) clearInterval(timerInterval);
+            if (celebrateTimeout) clearTimeout(celebrateTimeout);
+
+            // Таймер обратного отсчёта
+            timerInterval = setInterval(function() {
+                seconds--;
+                timerSeconds.textContent = seconds;
+                if (seconds <= 0) {
+                    clearInterval(timerInterval);
+                    closeCelebration();
+                }
+            }, 1000);
+
+            // Автоматическое закрытие через 30 секунд
+            celebrateTimeout = setTimeout(function() {
+                closeCelebration();
+            }, 30000);
         }
 
-        // Закрытие по клику
-        celebrateOverlay.addEventListener('click', function() {
+        function closeCelebration() {
             celebrateOverlay.classList.remove('show');
+            isCelebrating = false;
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            if (celebrateTimeout) {
+                clearTimeout(celebrateTimeout);
+                celebrateTimeout = null;
+            }
+        }
+
+        // Закрытие по кнопке ✕ (тоже закрывает)
+        celebrateCloseBtn.addEventListener('click', function() {
+            closeCelebration();
         });
 
         // ============================================================
@@ -493,6 +585,9 @@
         // ============================================================
         function showGameOver() {
             if (isGameOver) return;
+
+            // Сначала закрываем поздравление, если оно открыто
+            closeCelebration();
 
             isGameOver = true;
             localStorage.setItem('game_over', 'true');
@@ -556,6 +651,7 @@
 
         resetBtn.addEventListener('click', function() {
             if (confirm('Точно сбросить весь прогресс?')) {
+                closeCelebration();
                 count = 0;
                 clickpower = 1;
                 upgradeprice = 10;
