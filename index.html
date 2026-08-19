@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Кликер</title>
+    <style>
+        /* ===== СБРОС СТИЛЕЙ ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* ===== ГЛАВНЫЙ БЛОК ===== */
+        #app {
+            background: #1a1a2e;
+            border-radius: 24px;
+            padding: 40px 30px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            border: 1px solid #2a2a4a;
+        }
+
+        /* ===== ЗАГОЛОВОК ===== */
+        h1 {
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #8888aa;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+
+        /* ===== СЧЁТЧИК МОНЕТ ===== */
+        .counter {
+            font-size: 4.5rem;
+            font-weight: bold;
+            color: #ffd700;
+            background: #12121f;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 10px 0 15px 0;
+            border: 1px solid #2a2a4a;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ===== СТАТИСТИКА ===== */
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .stat-box {
+            background: #12121f;
+            border-radius: 12px;
+            padding: 12px 8px;
+            border: 1px solid #2a2a4a;
+        }
+
+        .stat-label {
+            color: #666688;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            color: #fff;
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-top: 2px;
+        }
+
+        .stat-value.gold {
+            color: #ffd700;
+        }
+        .stat-value.green {
+            color: #4ade80;
+        }
+        .stat-value.blue {
+            color: #60a5fa;
+        }
+        .stat-value.pink {
+            color: #f472b6;
+        }
+
+        /* ===== КНОПКИ ===== */
+        button {
+            border: none;
+            border-radius: 14px;
+            padding: 18px 20px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.08s ease, box-shadow 0.2s;
+            width: 100%;
+            margin: 6px 0;
+            touch-action: manipulation;
+            letter-spacing: 0.5px;
+        }
+
+        button:active {
+            transform: scale(0.94);
+        }
+
+        /* Кнопка клика */
+        #clickBtn {
+            background: linear-gradient(145deg, #ffd700, #f59e0b);
+            color: #1a1a2e;
+            font-size: 1.5rem;
+            padding: 22px 20px;
+            box-shadow: 0 6px 25px rgba(255, 215, 0, 0.25);
+            margin-top: 10px;
+        }
+
+        #clickBtn:active {
+            box-shadow: 0 3px 15px rgba(255, 215, 0, 0.15);
+        }
+
+        /* Кнопка улучшения */
+        #upgradeBtn {
+            background: linear-gradient(145deg, #4ade80, #22c55e);
+            color: #0f0f1a;
+            box-shadow: 0 4px 20px rgba(74, 222, 128, 0.2);
+        }
+
+        #upgradeBtn:active {
+            box-shadow: 0 2px 10px rgba(74, 222, 128, 0.1);
+        }
+
+        /* Кнопка сброса */
+        #resetBtn {
+            background: #2a2a4a;
+            color: #8888aa;
+            font-size: 0.95rem;
+            padding: 14px 20px;
+            margin-top: 10px;
+            border: 1px solid #3a3a5a;
+        }
+
+        #resetBtn:active {
+            background: #3a3a5a;
+        }
+
+        /* ===== УВЕДОМЛЕНИЕ (сообщение об ошибке) ===== */
+        #message {
+            color: #f87171;
+            font-size: 0.9rem;
+            min-height: 28px;
+            margin: 8px 0 4px 0;
+            transition: opacity 0.3s;
+            opacity: 0;
+        }
+
+        #message.show {
+            opacity: 1;
+        }
+
+        /* ===== АДАПТИВ ===== */
+        @media (max-width: 480px) {
+            #app {
+                padding: 28px 18px;
+            }
+            .counter {
+                font-size: 3.5rem;
+                padding: 15px;
+            }
+            h1 {
+                font-size: 1.6rem;
+            }
+            button {
+                font-size: 1rem;
+                padding: 16px 16px;
+            }
+            #clickBtn {
+                font-size: 1.2rem;
+                padding: 20px 16px;
+            }
+            .stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .stat-value {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        <!-- ЗАГОЛОВОК -->
+        <h1>⚡ КЛИКЕР</h1>
+        <div class="subtitle">нажимай и качай силу</div>
+
+        <!-- СЧЁТЧИК МОНЕТ -->
+        <div class="counter" id="counter">0</div>
+
+        <!-- СТАТИСТИКА -->
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-label">💰 Монет</div>
+                <div class="stat-value gold" id="coinsDisplay">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">⚡ Сила клика</div>
+                <div class="stat-value green" id="clickPowerDisplay">+1</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">📈 Улучшений</div>
+                <div class="stat-value blue" id="upgradeLevelDisplay">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">💎 Цена</div>
+                <div class="stat-value pink" id="upgradePriceDisplay">10</div>
+            </div>
+        </div>
+
+        <!-- КНОПКИ -->
+        <button id="clickBtn">👆 КЛИК</button>
+        <button id="upgradeBtn">🔧 Улучшить клик</button>
+        <button id="resetBtn">🔄 Сброс</button>
+
+        <!-- СООБЩЕНИЕ ОБ ОШИБКЕ -->
+        <div id="message"></div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  НАХОДИМ ЭЛЕМЕНТЫ
+        // ============================================================
+        const counterEl = document.getElementById('counter');
+        const coinsDisplay = document.getElementById('coinsDisplay');
+        const clickPowerDisplay = document.getElementById('clickPowerDisplay');
+        const upgradeLevelDisplay = document.getElementById('upgradeLevelDisplay');
+        const upgradePriceDisplay = document.getElementById('upgradePriceDisplay');
+        const clickBtn = document.getElementById('clickBtn');
+        const upgradeBtn = document.getElementById('upgradeBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const messageEl = document.getElementById('message');
+
+        // ============================================================
+        //  ПЕРЕМЕННЫЕ ИГРЫ
+        // ============================================================
+        let count = 0;              // монеты
+        let clickpower = 1;         // сила клика
+        let upgradeprice = 10;      // цена улучшения
+        let upgradelevel = 0;       // сколько куплено улучшений
+
+        // ============================================================
+        //  ЗАГРУЗКА ИЗ localStorage
+        // ============================================================
+        const savedCount = localStorage.getItem('clicker_count');
+        if (savedCount !== null) {
+            count = parseInt(savedCount);
+        }
+
+        const savedClickpower = localStorage.getItem('clicker_power');
+        if (savedClickpower !== null) {
+            clickpower = parseInt(savedClickpower);
+        }
+
+        const savedUpgradePrice = localStorage.getItem('clicker_price');
+        if (savedUpgradePrice !== null) {
+            upgradeprice = parseInt(savedUpgradePrice);
+        }
+
+        const savedUpgradeLevel = localStorage.getItem('clicker_level');
+        if (savedUpgradeLevel !== null) {
+            upgradelevel = parseInt(savedUpgradeLevel);
+        }
+
+        // ============================================================
+        //  ФУНКЦИЯ ОБНОВЛЕНИЯ ЭКРАНА
+        // ============================================================
+        function updateDisplay() {
+            counterEl.textContent = count;
+            coinsDisplay.textContent = count;
+            clickPowerDisplay.textContent = '+' + clickpower;
+            upgradeLevelDisplay.textContent = upgradelevel;
+            upgradePriceDisplay.textContent = upgradeprice;
+
+            // Сохраняем всё в localStorage
+            localStorage.setItem('clicker_count', count);
+            localStorage.setItem('clicker_power', clickpower);
+            localStorage.setItem('clicker_price', upgradeprice);
+            localStorage.setItem('clicker_level', upgradelevel);
+        }
+
+        // ============================================================
+        //  ФУНКЦИЯ ПОКАЗА СООБЩЕНИЯ
+        // ============================================================
+        let messageTimeout = null;
+
+        function showMessage(text, isError = true) {
+            messageEl.textContent = text;
+            messageEl.style.color = isError ? '#f87171' : '#4ade80';
+            messageEl.classList.add('show');
+
+            clearTimeout(messageTimeout);
+            messageTimeout = setTimeout(() => {
+                messageEl.classList.remove('show');
+            }, 2000);
+        }
+
+        // ============================================================
+        //  ОБРАБОТЧИКИ СОБЫТИЙ
+        // ============================================================
+
+        // --- КЛИК ---
+        clickBtn.addEventListener('click', function() {
+            count = count + clickpower;
+            updateDisplay();
+        });
+
+        // --- УЛУЧШЕНИЕ ---
+        upgradeBtn.addEventListener('click', function() {
+            if (count >= upgradeprice) {
+                count = count - upgradeprice;
+                clickpower = clickpower + 1;
+                upgradelevel = upgradelevel + 1;
+                upgradeprice = Math.floor(upgradeprice * 1.7); // цена растёт: 10 → 17 → 28 → 47...
+                updateDisplay();
+                showMessage('✅ Улучшение куплено!', false);
+            } else {
+                showMessage('❌ Не хватает монет! Нужно: ' + upgradeprice);
+            }
+        });
+
+        // --- СБРОС ---
+        resetBtn.addEventListener('click', function() {
+            if (confirm('Точно сбросить весь прогресс?')) {
+                count = 0;
+                clickpower = 1;
+                upgradeprice = 10;
+                upgradelevel = 0;
+                updateDisplay();
+                showMessage('🔄 Прогресс сброшен', false);
+            }
+        });
+
+        // ============================================================
+        //  СТАРТ
+        // ============================================================
+        updateDisplay();
+    </script>
+
+</body>
+</html>
